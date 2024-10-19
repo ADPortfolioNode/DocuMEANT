@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./backend:/app
+      - ./data:/data
+    environment:
+      - FLASK_APP=app/main.py
+      - FLASK_ENV=development
+    depends_on:
+      - chromadb
+    networks:
+      - docker-network
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - REACT_APP_API_URL=http://localhost:5000
+    depends_on:
+      - backend
+    networks:
+      - docker-network
+
+  chromadb:
+    build: 
+      context: .
+      dockerfile: Dockerfile.chromadb
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data/chromadb:/chromadb/data
+    networks:
+      - docker-network
+
+networks:
+  docker-network:
+    name: docker-network
