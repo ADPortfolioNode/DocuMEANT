@@ -1,20 +1,19 @@
-# Use the official Node.js image from the Docker Hub
-FROM node:14
+# Build stage
+FROM node:14 as build
 
-# Set the working directory in the container
 WORKDIR /app
 
-# Copy the package.json and package-lock.json into the container
 COPY package*.json ./
-
-# Install the dependencies
 RUN npm install
 
-# Copy the rest of the application code into the container
 COPY . .
+RUN npm run build
 
-# Expose the port the app runs on
-EXPOSE 3000
+# Production stage
+FROM nginx:alpine
 
-# Run the application
-CMD ["npm", "start"]
+COPY --from=build /app/build /usr/share/nginx/html
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]
